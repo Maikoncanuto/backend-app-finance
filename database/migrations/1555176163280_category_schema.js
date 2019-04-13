@@ -10,11 +10,15 @@ class CategorySchema extends Schema {
       table.string('description', 100)
       .notNullable()
       .unique()
-      .comment('Column of description')
 
-      table.boolean('sub_category')
-      .defaultTo(false)
-      .comment('Column to identify sub_category')
+      table
+      .integer('parent_category_id')
+      .unsigned()
+      .references('id')
+      .inTable('categories')
+      .onUpdate('CASCADE')
+      .onDelete('CASCADE')
+
       table.timestamps()
     })
   }

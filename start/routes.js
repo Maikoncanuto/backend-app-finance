@@ -19,10 +19,10 @@ const Route = use('Route')
 Route.post('/register', 'AuthController.register');
 Route.post('/authenticate', 'AuthController.authenticate');
 
-Route.get('/users', 'UserController.index').middleware(['auth']);
-
-
 Route.group(() => {
-    Route.resource('users', 'UsersController').apiOnly();
+    Route.resource('users', 'UserController').apiOnly().except('store', 'delete');
     Route.resource('categories', 'CategoryController').apiOnly();
+    Route.resource('banks', 'BankController').apiOnly();
+    Route.resource('payments', 'PaymentController').apiOnly();
+    Route.resource('revenues', 'RevenueController').apiOnly();
 }).middleware(['auth']);

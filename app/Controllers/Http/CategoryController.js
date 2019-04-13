@@ -32,7 +32,7 @@ class CategoryController {
    * @param {Response} ctx.response
    */
   async store ({ request }) {
-    const data = request.only(['description', 'sub_category'])
+    const data = request.only(['description',  'parent_category_id'])
     const category = await Category.create(data)
     return category
   }
@@ -60,9 +60,9 @@ class CategoryController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async update ({ params, request, response }) {
+  async update ({ params, request }) {
     const category = await Category.findOrFail(params.id)
-    const data = await request.only(['description', 'sub_category'])
+    const data = await request.only(['description', 'parent_category_id'])
     category.merge({...data})
     category.save()
 
