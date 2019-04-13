@@ -16,7 +16,7 @@ class RevenueController {
   }
 
   async store ({ request, auth }) {
-    const data = await request.only(['amount', 'description', 'category_id', 'bank_id'])
+    const data = await request.only(['amount', 'date', 'description', 'category_id', 'bank_id'])
     const revenue = await Revenue.create({ user_id: auth.user.id, ...data })
     return revenue
   }
