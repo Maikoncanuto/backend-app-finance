@@ -25,4 +25,6 @@ Route.group(() => {
     Route.resource('banks', 'BankController').apiOnly();
     Route.resource('payments', 'PaymentController').apiOnly();
     Route.resource('revenues', 'RevenueController').apiOnly();
-}).middleware(['auth']);
+})
+.prefix('api/v1')
+.middleware(['auth']);
