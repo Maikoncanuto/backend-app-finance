@@ -19,6 +19,15 @@ class CategorySchema extends Schema {
       .onUpdate('CASCADE')
       .onDelete('CASCADE')
 
+      table
+      .integer('user_id')
+      .unsigned()
+      .notNullable()
+      .references('id')
+      .inTable('users')
+      .onUpdate('CASCADE')
+      .onDelete('CASCADE')
+
       table.timestamps()
     })
   }

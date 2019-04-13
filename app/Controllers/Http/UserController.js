@@ -5,45 +5,25 @@
 /** @typedef {import('@adonisjs/framework/src/View')} View */
 
 const User = use('App/Models/User')
+const NotauthorizedException = use('App/Exceptions/NotauthorizedException')
 
-/**
- */
 class UserController {
-  /**
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async index () {
-    const users = await User.all()
-    return users
-  }
 
-
-  /**
-   * GET revenues/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async show ({ params }) {
+  async show ({ params, auth }) {
     const user = await User.findOrFail(params.id)
+
+    if(user.id !== auth.user.id)
+      throw new NotauthorizedException()
+
     return user
   }
 
-  /**
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async update ({ params, request }) {
+  async update ({ params, request, auth }) {
     const user = await User.findOrFail(params.id)
     const data = await request.only(['email', 'password', 'username'])
+
+    if(user.id !== auth.user.id)
+      throw new NotauthorizedException()
 
     user.merge({...data})
     user.save()

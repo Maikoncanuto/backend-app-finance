@@ -36,15 +36,6 @@ class RevenueSchema extends Schema {
       .onDelete('CASCADE')
 
       table
-      .integer('sub_category_id')
-      .unsigned()
-      .notNullable()
-      .references('id')
-      .inTable('categories')
-      .onUpdate('CASCADE')
-      .onDelete('CASCADE')
-
-      table
       .integer('bank_id')
       .unsigned()
       .notNullable()

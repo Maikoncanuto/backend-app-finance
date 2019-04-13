@@ -5,64 +5,37 @@
 /** @typedef {import('@adonisjs/framework/src/View')} View */
 
 const Revenue = use('App/Models/Revenue')
+const Database = use('Database')
+const NotauthorizedException = use('App/Exceptions/NotauthorizedException')
 
-/**
- * Resourceful controller for interacting with revenues
- */
 class RevenueController {
-  /**
-   * Show a list of all revenues.
-   * GET revenues
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async index () {
-    const revenues = await Revenue.all()
+
+  async index ({ auth }) {
+    const revenues = await Database.from('revenues').where('user_id', auth.user.id)
     return revenues
   }
-  
-  /**
-   * Create/save a new revenue.
-   * POST revenues
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async store ({ request, auth}) {
-    const data = await request.only(['amount', 'description', 'category_id', 'sub_category_id', 'bank_id'])
+
+  async store ({ request, auth }) {
+    const data = await request.only(['amount', 'description', 'category_id', 'bank_id'])
     const revenue = await Revenue.create({ user_id: auth.user.id, ...data })
     return revenue
   }
 
-  /**
-   * Display a single revenue.
-   * GET revenues/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async show ({ params }) {
+  async show ({ params, auth }) {
     const revenue = await Revenue.findOrFail(params.id)
+
+    if(revenue.user_id !== auth.user.id)
+      throw new NotauthorizedException()
+
     return revenue
   }
 
-  /**
-   * Update revenue details.
-   * PUT or PATCH revenues/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async update ({ params, request }) {
+  async update ({ params, request, auth }) {
     const revenue = await Revenue.findOrFail(params.id)
     const data = await request.only(['amount', 'description', 'category_id', 'sub_category_id', 'bank_id'])
+
+    if(revenue.user_id !== auth.user.id)
+      throw new NotauthorizedException()
 
     revenue.merge({...data})
     revenue.save()
@@ -70,16 +43,12 @@ class RevenueController {
     return revenue
   }
 
-  /**
-   * Delete a revenue with id.
-   * DELETE revenues/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async destroy ({ params }) {
+  async destroy ({ params, auth }) {
     const revenue = await Revenue.findOrFail(params.id)
+
+    if(revenue.user_id !== auth.user.id)
+      throw new NotauthorizedException()
+
     revenue.delete()
   }
 }

@@ -10,6 +10,16 @@ class PaymentSchema extends Schema {
       table.string('description', 100)
       .notNullable()
       .unique()
+
+      table
+      .integer('user_id')
+      .unsigned()
+      .notNullable()
+      .references('id')
+      .inTable('users')
+      .onUpdate('CASCADE')
+      .onDelete('CASCADE')
+
       table.timestamps()
     })
   }

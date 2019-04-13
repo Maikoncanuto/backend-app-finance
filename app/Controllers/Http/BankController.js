@@ -5,79 +5,49 @@
 /** @typedef {import('@adonisjs/framework/src/View')} View */
 
 const Bank = use('App/Models/Bank')
+const Database = use('Database')
+const NotauthorizedException = use('App/Exceptions/NotauthorizedException')
 
-/**
- * Resourceful controller for interacting with banks
- */
 class BankController {
-  /**
-   * Show a list of all banks.
-   * GET banks
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async index ({ request, response, view }) {
-    const banks = await Bank.all()
+
+  async index ({ auth }) {
+    const banks = await Database.from('banks').where('user_id', auth.user.id)
     return banks
   }
 
-  /**
-   * Create/save a new bank.
-   * POST banks
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async store ({ request }) {
+  async store ({ request, auth }) {
     const data = await request.only(['description'])
-    const bank = await Bank.create(data)
+    const bank = await Bank.create({user_id: auth.user.id, ...data})
     return bank
   }
 
-  /**
-   * Display a single bank.
-   * GET banks/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async show ({ params }) {
+  async show ({ params, auth }) {
     const bank = await Bank.findOrFail(params.id)
+
+    if(bank.user_id !== auth.user.id)
+      throw new NotauthorizedException()
+
     return bank
   }
 
-  /**
-   * Update bank details.
-   * PUT or PATCH banks/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async update ({ params, request }) {
+  async update ({ params, request, auth }) {
     const bank = await Bank.findOrFail(params.id)
     const data = await request.only(['description'])
+
+    if(bank.user_id !== auth.user.id)
+      throw new NotauthorizedException()
+
     bank.merge({...data})
     bank.save()
     return bank
   }
 
-  /**
-   * Delete a bank with id.
-   * DELETE banks/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async destroy ({ params }) {
+  async destroy ({ params, auth }) {
     const bank = await Bank.findOrFail(params.id)
+
+    if(bank.user_id !== auth.user.id)
+      throw new NotauthorizedException()
+
     bank.delete()
   }
 }

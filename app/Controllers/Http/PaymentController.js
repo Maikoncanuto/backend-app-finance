@@ -5,79 +5,49 @@
 /** @typedef {import('@adonisjs/framework/src/View')} View */
 
 const Payment = use('App/Models/Payment')
+const Database = use('Database')
+const NotauthorizedException = use('App/Exceptions/NotauthorizedException')
 
-/**
- * Resourceful controller for interacting with payments
- */
 class PaymentController {
-  /**
-   * Show a list of all payments.
-   * GET payments
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async index () {
-    const payments = await Payment.all()
+
+  async index ({ auth }) {
+    const payments = await Database.from('payments').where('user_id', auth.user.id)
     return payments
   }
 
-  /**
-   * Create/save a new payment.
-   * POST payments
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async store ({ request }) {
+  async store ({ request, auth }) {
     const data = await request.only(['description'])
-    const payment = await Payment.create(data)
+    const payment = await Payment.create({user_id: auth.user.id, ...data})
     return payment
   }
 
-  /**
-   * Display a single payment.
-   * GET payments/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async show ({ params }) {
+  async show ({ params, auth }) {
     const payment = await Payment.findOrFail(params.id)
+
+    if(payment.user_id !== auth.user.id)
+      throw new NotauthorizedException()
+
     return payment
   }
 
-  /**
-   * Update payment details.
-   * PUT or PATCH payments/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async update ({ params, request }) {
+  async update ({ params, request, auth }) {
     const payment = await Payment.findOrFail(params.id)
     const data = await request.only(['description'])
+
+    if(payment.user_id !== auth.user.id)
+      throw new NotauthorizedException()
+
     payment.merge({...data})
     payment.save()
     return payment
   }
 
-  /**
-   * Delete a payment with id.
-   * DELETE payments/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async destroy ({ params }) {
+  async destroy ({ params, auth }) {
     const payment = await Payment.findOrFail(params.id)
+
+    if(payment.user_id !== auth.user.id)
+      throw new NotauthorizedException()
+
     payment.delete()
   }
 }

@@ -3,82 +3,52 @@
 /** @typedef {import('@adonisjs/framework/src/Request')} Request */
 /** @typedef {import('@adonisjs/framework/src/Response')} Response */
 /** @typedef {import('@adonisjs/framework/src/View')} View */
-const Category = use('App/Models/Category')
 
-/**
- * Resourceful controller for interacting with categories
- */
+const Category = use('App/Models/Category')
+const Database = use('Database')
+const NotauthorizedException = use('App/Exceptions/NotauthorizedException')
+
 class CategoryController {
-  /**
-   * Show a list of all categories.
-   * GET categories
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async index () {
-    const categories = await Category.all()
+
+  async index ({ auth }) {
+    const categories = await Database.from('categories').where('user_id', auth.user.id)
     return categories
   }
 
-  /**
-   * Create/save a new category.
-   * POST categories
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async store ({ request }) {
+  async store ({ request, auth }) {
     const data = request.only(['description',  'parent_category_id'])
-    const category = await Category.create(data)
+    const category = await Category.create({user_id: auth.user.id, ...data})
     return category
   }
 
-  /**
-   * Display a single category.
-   * GET categories/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async show ({ params }) {
+  async show ({ params, auth }) {
     const category = await Category.findOrFail(params.id)
+
+    if(auth.user.id !== category.user_id)
+      throw new NotauthorizedException()
+
     return category
   }
 
-
-  /**
-   * Update category details.
-   * PUT or PATCH categories/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async update ({ params, request }) {
+  async update ({ params, request, auth }) {
     const category = await Category.findOrFail(params.id)
     const data = await request.only(['description', 'parent_category_id'])
+    
+    if(category.user_id !== auth.user.id)
+      throw new NotauthorizedException()
+
     category.merge({...data})
     category.save()
 
     return category
   }
 
-  /**
-   * Delete a category with id.
-   * DELETE categories/:id
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   */
-  async destroy ({ params }) {
+  async destroy ({ params, auth }) {
     const category = await Category.findOrFail(params.id)
+
+    if(category.user_id !== auth.user.id)
+      throw new NotauthorizedException()
+
     category.delete()
   }
 }
