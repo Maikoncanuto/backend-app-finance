@@ -11,6 +11,7 @@ const NotauthorizedException = use('App/Exceptions/NotauthorizedException')
 class CategoryController {
 
   async index ({ auth }) {
+    throw new NotauthorizedException()
     const categories = await Database.from('categories').where('user_id', auth.user.id)
     return categories
   }
